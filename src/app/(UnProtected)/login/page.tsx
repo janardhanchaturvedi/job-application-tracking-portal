@@ -19,7 +19,6 @@ const Login: React.FC = () => {
     setIsLoading(true)
 
     try {
-      // TODO: Implement Supabase authentication
       router.push('/')
     } catch (err) {
       setError('Invalid email or password')
