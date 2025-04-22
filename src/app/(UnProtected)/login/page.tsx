@@ -5,6 +5,8 @@ import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Cookies from 'js-cookie'
+import apiClient from '@/config/axiosInstance'
 
 const Login: React.FC = () => {
   const router = useRouter()
@@ -17,7 +19,21 @@ const Login: React.FC = () => {
     e.preventDefault()
     setError('')
     setIsLoading(true)
-
+    const response = await apiClient.post('/users/login', {
+      email,
+      password,
+    })
+    if (response.status !== 200) {
+      setError('Invalid email or password')
+      setIsLoading(false)
+      return
+    }
+    const { token } = response.data
+    if (token) {
+      localStorage.setItem('token', token)
+      apiClient.defaults.headers['x-access-token'] = token
+      Cookies.set('token', token)
+    }
     try {
       router.push('/')
     } catch (err) {
