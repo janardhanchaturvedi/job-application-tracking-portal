@@ -9,7 +9,7 @@ const statusOptions = [
   { value: 'Applied', label: 'Applied' },
   { value: 'Interview Scheduled', label: 'Interview Scheduled' },
   { value: 'Rejected', label: 'Rejected' },
-  { value: 'Offer Received', label: 'Offer Received' },
+  { value: 'Offered', label: 'Offered' },
 ]
 
 interface JobFormProps {
@@ -19,7 +19,12 @@ interface JobFormProps {
 }
 
 const JobForm: React.FC<JobFormProps> = ({ initialValues, onSubmit, isLoading = false }) => {
-  const [formData, setFormData] = useState<Omit<JobApplication, 'id' | 'lastUpdated'>>({
+  const [formData, setFormData] = useState<
+    Pick<
+      JobApplication,
+      'jobTitle' | 'company' | 'applicationDate' | 'status' | 'jobLink' | 'notes' | 'interviews'
+    >
+  >({
     jobTitle: '',
     company: '',
     applicationDate: new Date().toISOString().split('T')[0],
@@ -99,7 +104,7 @@ const JobForm: React.FC<JobFormProps> = ({ initialValues, onSubmit, isLoading = 
     e.preventDefault()
 
     if (validateForm()) {
-      onSubmit(formData)
+      onSubmit(formData as Omit<JobApplication, 'id' | 'lastUpdated'>)
     }
   }
 

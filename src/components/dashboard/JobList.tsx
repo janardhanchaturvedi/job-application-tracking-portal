@@ -115,7 +115,7 @@ const JobList: React.FC<JobListProps> = ({ jobs, onDelete }) => {
     'Applied',
     'Interview Scheduled',
     'Rejected',
-    'Offer Received',
+    'Offered',
   ]
 
   return (

@@ -27,6 +27,7 @@ const EditJob: React.FC = () => {
   }, [id, getJob])
 
   const handleUpdateJob = (jobData: any) => {
+    
     if (id) {
       updateJob({ ...jobData, id })
       router.push(`/job-details/${id}`)

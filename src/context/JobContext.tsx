@@ -41,14 +41,22 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }
 
   const updateJob = async (updatedJob: JobApplication) => {
-    updatedJob.lastUpdated = new Date().toISOString()
-    const updatedJobs = await apiClient.put(`/jobs/${updatedJob._id}`, updatedJob)
-    if (updatedJobs.data.success) {
-      loadJobs().then((loadedJobs) => setJobs(loadedJobs.applications))
-      toast.success('Job application updated successfully!')
-    } else {
-      toast.error('Failed to update job application')
-      console.error('Failed to update job:', updatedJobs.data.message)
+    const { _id, ...jobDataWithoutId } = updatedJob
+    jobDataWithoutId.lastUpdated = new Date().toISOString()
+
+    try {
+      const response = await apiClient.put(`/jobs/${_id}`, jobDataWithoutId)
+      if (response.data.success) {
+        const loadedJobs = await loadJobs()
+        setJobs(loadedJobs.applications)
+        toast.success('Job application updated successfully!')
+      } else {
+        toast.error('Failed to update job application')
+        console.error('Failed to update job:', response.data.message)
+      }
+    } catch (error) {
+      console.error('Error updating job:', error)
+      toast.error('An error occurred while updating the job application')
     }
   }
 
@@ -70,7 +78,7 @@ export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const job = response.data.data
         return {
           ...job,
-          applicationDate: job.applicationDate || null, // Ensure fields are consistent
+          applicationDate: job.applicationDate || null,
           lastUpdated: job.lastUpdated || null,
         }
       }
