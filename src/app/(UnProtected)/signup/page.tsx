@@ -1,14 +1,16 @@
 'use client'
-import React, { useState } from 'react'
+import React, { use, useState } from 'react'
 import { Briefcase, Mail, Lock, User } from 'lucide-react'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import apiClient from '@/config/axiosInstance'
 
 const Signup: React.FC = () => {
   const router = useRouter()
   const [formData, setFormData] = useState({
+    username: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -38,21 +40,35 @@ const Signup: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
+    setError('') // Clear any previous errors
 
     if (!validateForm()) {
       return
     }
 
-    setIsLoading(true)
+    setIsLoading(true) // Show loading state during API call
 
     try {
-      // TODO: Implement Supabase authentication
-      router.push('/')
-    } catch (err) {
-      setError('Failed to create account')
+      const response = await apiClient.post('/users/signup', {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+      })
+
+      if (!response.data.success) {
+        setError(response.data.message ?? 'Failed to create account')
+        return
+      }
+
+      // Navigate to the login page on successful signup
+      router.push('/login')
+    } catch (err: any) {
+      // Handle Axios error
+      const errorMessage = err.response?.data?.message ?? err.message ?? 'Failed to create account'
+      setError(errorMessage)
+      console.error('Signup error:', err)
     } finally {
-      setIsLoading(false)
+      setIsLoading(false) // Always reset loading state
     }
   }
 
@@ -81,7 +97,16 @@ const Signup: React.FC = () => {
                 {error}
               </div>
             )}
-
+            <Input
+              id='username'
+              name='username'
+              type='text'
+              label='Username'
+              value={formData.username}
+              onChange={handleChange}
+              icon={<User size={20} className='text-gray-400' />}
+              required
+            />
             <Input
               id='email'
               name='email'

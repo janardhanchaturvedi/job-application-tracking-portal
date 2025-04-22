@@ -19,11 +19,11 @@ const Login: React.FC = () => {
     e.preventDefault()
     setError('')
     setIsLoading(true)
-    const response = await apiClient.post('/users/login', {
+    const response = await apiClient.post('/users/signin', {
       email,
       password,
     })
-    if (response.status !== 200) {
+    if (response.data.success !== true) {
       setError('Invalid email or password')
       setIsLoading(false)
       return
