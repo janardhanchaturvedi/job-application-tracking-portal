@@ -1,7 +1,9 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  /* config options here */
-};
+  experimental: {},
 
-export default nextConfig;
+  // Middleware routes should be configured in the middleware.ts file
+}
+
+export default nextConfig

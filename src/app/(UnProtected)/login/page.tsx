@@ -28,7 +28,7 @@ const Login: React.FC = () => {
       setIsLoading(false)
       return
     }
-    const { token } = response.data
+    const { token } = response.data.data
     if (token) {
       localStorage.setItem('token', token)
       apiClient.defaults.headers['x-access-token'] = token
