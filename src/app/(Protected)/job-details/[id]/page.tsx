@@ -1,17 +1,28 @@
 'use client'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Calendar, Building2, Link as LinkIcon, Edit2, Trash2 } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { useJobs } from '@/context/JobContext'
 import Button from '@/components/ui/Button'
 import Badge from '@/components/ui/Badge'
 import Link from 'next/link'
+import { JobApplication } from '@/types'
 
 const JobDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const { getJob, deleteJob } = useJobs()
   const router = useRouter()
-  const job = id ? getJob(id) : undefined
+  const [job, setJob] = useState<JobApplication | undefined>(undefined)
+
+  useEffect(() => {
+    if (id) {
+      getJob(id)
+        .then(setJob)
+        .catch((error) => {
+          console.error('Error fetching job:', error)
+        })
+    }
+  }, [id, getJob])
 
   const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete this application?')) {
@@ -20,15 +31,16 @@ const JobDetails: React.FC = () => {
     }
   }
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A'
     const date = new Date(dateString)
+    if (isNaN(date.getTime())) return 'Invalid Date'
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     }).format(date)
   }
-
   if (!job) {
     return (
       <div className='max-w-3xl mx-auto text-center'>
@@ -56,7 +68,7 @@ const JobDetails: React.FC = () => {
         </div>
 
         <div className='flex space-x-3'>
-          <Link href={`/edit-job/${job.id}`}>
+          <Link href={`/edit-job/${job._id}`}>
             <Button variant='outline' className='flex items-center'>
               <Edit2 size={16} className='mr-2' />
               Edit

@@ -13,34 +13,20 @@ const apiClient = axios.create({
 })
 
 // Request Interceptor
-apiClient.interceptors.response.use(
-  (response: AxiosResponse) => response,
-  (error: AxiosError) => {
-    if (error.response) {
-      const { data } = error.response as { data: { message?: string } }
-      const message = data?.message || 'An unexpected error occurred.'
-
-      // Attach the error message for use in the catch block
-      return Promise.reject(
-        new AxiosError(message, error.code, error.config, error.request, error.response),
-      )
-    } else if (error.request) {
-      return Promise.reject(
-        new AxiosError(
-          'No response from server. Please check your network connection.',
-          error.code,
-          error.config,
-        ),
-      )
-    } else {
-      return Promise.reject(
-        new AxiosError(
-          'Failed to process the request. Please try again.',
-          error.code,
-          error.config,
-        ),
-      )
+apiClient.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const token = Cookies.get('token') // Retrieve the token from cookies
+    if (token) {
+      // If the token is present in cookies, add it to the request headers
+      if (!config.headers) {
+        config.headers = {} as AxiosRequestHeaders
+      }
+      config.headers['x-access-token'] = token
     }
+    return config
+  },
+  (error: AxiosError) => {
+    return Promise.reject(error)
   },
 )
 

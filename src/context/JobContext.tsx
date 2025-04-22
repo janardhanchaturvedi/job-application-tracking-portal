@@ -2,13 +2,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { JobApplication, JobStatus } from '../types'
 import { loadJobs, saveJobs, generateId } from '../utils/storage'
+import apiClient from '@/config/axiosInstance'
+import toast from 'react-hot-toast'
 
 interface JobContextType {
   jobs: JobApplication[]
   addJob: (job: Omit<JobApplication, 'id' | 'lastUpdated'>) => void
   updateJob: (job: JobApplication) => void
   deleteJob: (id: string) => void
-  getJob: (id: string) => JobApplication | undefined
+  getJob: (id: string) => Promise<JobApplication | undefined>
 }
 
 const JobContext = createContext<JobContextType | undefined>(undefined)
@@ -16,38 +18,68 @@ const JobContext = createContext<JobContextType | undefined>(undefined)
 export const JobProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [jobs, setJobs] = useState<JobApplication[]>([])
 
-  // Load jobs from localStorage on initial render
   useEffect(() => {
-    setJobs(loadJobs())
+    loadJobs().then((loadedJobs) => setJobs(loadedJobs.applications))
   }, [])
 
-  // Save jobs to localStorage whenever they change
   useEffect(() => {
     saveJobs(jobs)
   }, [jobs])
 
-  const addJob = (jobData: Omit<JobApplication, 'id' | 'lastUpdated'>) => {
+  const addJob = async (jobData: Omit<JobApplication, 'id' | 'lastUpdated'>) => {
     const newJob: JobApplication = {
       ...jobData,
-      id: generateId(),
       lastUpdated: new Date().toISOString(),
     }
-    setJobs((prevJobs) => [...prevJobs, newJob])
+    const response = await apiClient.post('/jobs', newJob)
+    if (response.data.success) {
+      toast.success('Job application added successfully!')
+      loadJobs().then((loadedJobs) => setJobs(loadedJobs.applications))
+    } else {
+      console.error('Failed to add job:', response.data.message)
+    }
   }
 
-  const updateJob = (updatedJob: JobApplication) => {
+  const updateJob = async (updatedJob: JobApplication) => {
     updatedJob.lastUpdated = new Date().toISOString()
-    setJobs((prevJobs) => prevJobs.map((job) => (job.id === updatedJob.id ? updatedJob : job)))
+    const updatedJobs = await apiClient.put(`/jobs/${updatedJob._id}`, updatedJob)
+    if (updatedJobs.data.success) {
+      loadJobs().then((loadedJobs) => setJobs(loadedJobs.applications))
+      toast.success('Job application updated successfully!')
+    } else {
+      toast.error('Failed to update job application')
+      console.error('Failed to update job:', updatedJobs.data.message)
+    }
   }
 
-  const deleteJob = (id: string) => {
-    setJobs((prevJobs) => prevJobs.filter((job) => job.id !== id))
+  const deleteJob = async (id: string) => {
+    const updatedJobs = await apiClient.delete(`/jobs/${id}`)
+    if (updatedJobs.data.success) {
+      loadJobs().then((loadedJobs) => setJobs(loadedJobs.applications))
+      toast.success('Job application deleted successfully!')
+    } else {
+      toast.error('Failed to delete job application')
+      console.error('Failed to delete job:', updatedJobs.data.message)
+    }
   }
 
-  const getJob = (id: string) => {
-    return jobs.find((job) => job.id === id)
+  const getJob = async (id: string) => {
+    try {
+      const response = await apiClient.get(`/jobs/${id}`)
+      if (response.data.success) {
+        const job = response.data.data
+        return {
+          ...job,
+          applicationDate: job.applicationDate || null, // Ensure fields are consistent
+          lastUpdated: job.lastUpdated || null,
+        }
+      }
+      return undefined
+    } catch (error) {
+      console.error('Error fetching job:', error)
+      return undefined
+    }
   }
-
   return (
     <JobContext.Provider value={{ jobs, addJob, updateJob, deleteJob, getJob }}>
       {children}

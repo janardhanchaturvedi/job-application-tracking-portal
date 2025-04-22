@@ -3,19 +3,42 @@ import JobForm from '@/components/jobs/JobForm'
 import Button from '@/components/ui/Button'
 import { useJobs } from '@/context/JobContext'
 import { useParams, useRouter } from 'next/navigation'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 
 const EditJob: React.FC = () => {
   const { getJob, updateJob } = useJobs()
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const job = id ? getJob(id) : undefined
+  const [job, setJob] = useState<any | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (id) {
+      getJob(id)
+        .then((jobData) => {
+          setJob(jobData || null)
+          setLoading(false)
+        })
+        .catch((error) => {
+          console.error('Error fetching job:', error)
+          setLoading(false)
+        })
+    }
+  }, [id, getJob])
 
   const handleUpdateJob = (jobData: any) => {
     if (id) {
       updateJob({ ...jobData, id })
       router.push(`/job-details/${id}`)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className='max-w-3xl mx-auto text-center'>
+        <p className='text-gray-600'>Loading...</p>
+      </div>
+    )
   }
 
   if (!job) {

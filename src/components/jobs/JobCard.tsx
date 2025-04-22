@@ -10,6 +10,7 @@ interface JobCardProps {
 }
 
 const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
+  console.log('🚀 ~ job:', job)
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return new Intl.DateTimeFormat('en-US', {
@@ -32,13 +33,13 @@ const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
               </button>
               <div className='absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 invisible group-hover:visible z-10'>
                 <Link
-                  href={`/edit-job/${job.id}`}
+                  href={`/edit-job/${job._id}`}
                   className='block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
                 >
                   Edit
                 </Link>
                 <button
-                  onClick={() => onDelete(job.id)}
+                  onClick={() => onDelete(job._id)}
                   className='block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100'
                 >
                   Delete
@@ -75,7 +76,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onDelete }) => {
             <span className='text-sm text-gray-400'>No job link</span>
           )}
           <Link
-            href={`/job-details/${job.id}`}
+            href={`/job-details/${job._id}`}
             className='text-sm text-blue-600 hover:text-blue-800'
           >
             View Details
